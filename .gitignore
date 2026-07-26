@@ -1,0 +1,7 @@
+source/obj/**
+source/curled/**
+.vs/**
+
+.DS_Store
+Thumbs.db
+*.tmp

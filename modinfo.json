@@ -1,0 +1,26 @@
+{
+	"id": "uql.scribe",
+	"name": "Scribe",
+	"version": "0.1.0",
+	"authors": "upquilled",
+	"description": "Neatly structured custom save data!",
+	"requirements": [ "uql.extra" ],
+	"requirements_names": [ "Extra Parameters" ],
+	"tags": [ "Tools" ],
+	"checksum_override_version": true,
+	"uql.extra": {
+		"exclude_steam": [
+				"source/**",
+				".git/**",
+				".gitattributes",
+				".gitignore",
+				"**/.DS_Store",
+				"README.md",
+				"**/Thumbs.db",
+				"**.tmp",
+				"bwu.json",
+				"plugins/**.pdb",
+        			"**/.vs/**"
+		]
+	}
+}
