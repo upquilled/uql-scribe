@@ -3,13 +3,14 @@
 	"name": "Scribe",
 	"version": "0.1.0",
 	"authors": "upquilled",
-	"description": "Neatly structured custom save data!",
+	"description": "Unified persistent save data for YOUR MOD!",
 	"requirements": [ "uql.extra" ],
 	"requirements_names": [ "Extra Parameters" ],
 	"tags": [ "Tools" ],
 	"checksum_override_version": true,
 	"uql.extra": {
-		"exclude_steam": [
+		"exclude_steam": {
+			"globs": [
 				"source/**",
 				".git/**",
 				".gitattributes",
@@ -20,7 +21,10 @@
 				"**.tmp",
 				"bwu.json",
 				"plugins/**.pdb",
-        			"**/.vs/**"
-		]
+				"thumbnail.svg",
+        		"**/.vs/**"
+			],
+			"dry_run": true
+		}
 	}
 }

@@ -2,9 +2,8 @@
 
 ---
 
-### *Neatly structured custom save data!*
+### *Unified persistent save data for YOUR MOD!*
 
-This mod is currently in development.
-To run the development version of it (this repository), please install [Extra Parameters](https://steamcommunity.com/sharedfiles/filedetails/?id=3557598109), as it is a required dependency. Then you may clone the repository into your `StreamingAssets/mods` directory.
+To run the development version of this mod (this repository), please install [Extra Parameters](https://steamcommunity.com/sharedfiles/filedetails/?id=3557598109), as it is a required dependency. Then you may clone the repository into your `StreamingAssets/mods` directory.
 
 Steam Workshop Item: []()

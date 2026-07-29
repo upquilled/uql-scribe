@@ -2,6 +2,8 @@
 using System.Security;
 using BepInEx.Logging;
 using System;
+using UQLScribe.Registries;
+using System.Collections.Generic;
 
 [module: UnverifiableCode]
 
@@ -24,6 +26,8 @@ public partial class UQLScribe : BaseUnityPlugin
         LoggerInstance.LogInfo("UQLTAG! :3");
     }
 
+    internal static RainWorld rainWorldInstance;
+    
     private void RainWorldOnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
         orig(self);
@@ -31,6 +35,8 @@ public partial class UQLScribe : BaseUnityPlugin
 
         _initialized = true;
         Hooks.ApplyInit();
+
+        rainWorldInstance = self;
     }
 
     public static void LInfo(string message)

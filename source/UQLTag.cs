@@ -6,10 +6,18 @@ using System.Linq;
 using System.Text;
 
 public static class UQLTag {
+
+    public class UQLTagSyntaxException : Exception
+    {
+        public UQLTagSyntaxException(string message) : base(message) {}
+    }
     public interface Element;
     public interface Compound : Tag;
     public interface Tag : Element;
     public interface IRecordEntry : Tag;
+
+    private static string prefix = "[scribesaves:";
+    private static char suffix = ']';
 
     private static bool Functional(char c)
     {
@@ -105,18 +113,18 @@ public static class UQLTag {
     public class NamedGroup : Compound, IRecordEntry
     {
         public Label label;
-        public Group group;
+        public Compound[] compounds;
 
-        public NamedGroup(Label label, Group group)
+        public NamedGroup(Label label, IEnumerable<Compound> compounds)
         {
             if (label.val == "") throw new ArgumentException("NamedGroup Label cannot be empty");
             this.label = label;
-            this.group = group;
+            this.compounds = compounds.ToArray();
         }
 
         public override string ToString()
         {
-            return label.ToString()+group.ToString();
+            return $"{label}<{concatenate(compounds)}>";
         }
     }
 
@@ -141,7 +149,7 @@ public static class UQLTag {
     private static class ParsingErrors {
         public static void Syntax(int chari,string text)
         {
-            throw new ArgumentException($"Malformed UQLTag at char {chari}: {text}");
+            throw new UQLTagSyntaxException($"Malformed UQLTag at char {chari}: {text}");
         }
 
         public static void SuddenEnd(int chari)
@@ -189,7 +197,7 @@ public static class UQLTag {
         if (source[i] == '<') 
         {
             Group group = ParseGroup(source, ref i);
-            return new NamedGroup(label, group);
+            return new NamedGroup(label, group.compounds);
         }
         return label;
     }
@@ -228,7 +236,7 @@ public static class UQLTag {
             entry = ParseLabel(source, ref i);
             if (source[i] == '<') {
                 Group group = ParseGroup(source, ref i);
-                entry = new NamedGroup((Label) entry, group);
+                entry = new NamedGroup((Label) entry, group.compounds);
             }
         }
         if (source[i] == ':') return ParseRecord(entry, source, ref i);
@@ -265,13 +273,90 @@ public static class UQLTag {
         return ParseWrapper(input, ref i);
     }
 
-    public static IEnumerable<Wrapper> ParseAll(string input)
+    internal static IEnumerable<Wrapper> ParseFromSave(string input)
     {
-        for (int i = 0;i < input.Length;)
+        int i = input.LastIndexOf(prefix);
+        if (i == -1)
         {
-            char c = input[i];
-            if (c == '<') yield return ParseWrapper(input, ref i);
-            else i++;
+            UQLScribe.LWarn("No save data block found!");
+            yield break;
+        }
+        i += prefix.Length;
+        if (i >= input.Length)
+        {
+            UQLScribe.LError("Save data prefix found, but no data follows it");
+            yield break;
+        }
+        while (i < input.Length && input[i] == '<')
+        {
+            Wrapper? save = null;
+            try {
+                save = ParseWrapper(input, ref i);
+            } catch (UQLTagSyntaxException e)
+            {
+                UQLScribe.LError(e.Message);
+            }
+            if (save != null) yield return save;
+            else {
+                yield break;
+            }
+        } if (i >= input.Length || input[i] != suffix)
+            UQLScribe.LWarn("No termination suffix found! Save data may be malformed");
+    }
+
+    internal static string SerializeToSave(IEnumerable<Wrapper> input)
+    {
+        StringBuilder sb = new();
+        sb.Append(prefix);
+        foreach (Wrapper x in input)
+            sb.Append(x);
+        sb.Append(suffix);
+        return sb.ToString();
+    }
+
+    internal static IEnumerable<(int Start, int End)> FindAllSaves(string input)
+    {
+        int? start = null;
+        int? nestc = null;
+
+        for (int i = 0; i + prefix.Length <= input.Length;i++)
+        {
+            if (string.Compare(input, i, prefix, 0, prefix.Length, StringComparison.Ordinal) == 0) {
+                start = i;
+                i += prefix.Length - 1;
+                nestc = 0;
+                continue;
+            } if (nestc != null)
+            {
+                char c = input[i];
+                if (nestc == 0)
+                {
+                    if (c == ']')
+                    {
+                        yield return ((int) start, i+1);
+                        nestc = start = null;
+                        continue;
+                    } else if (c != '<')
+                    {
+                        UQLScribe.LInfo("Block appears to be malformed. Continuing to next...");
+                        nestc = start = null;
+                        i--;
+                        continue;
+                    }
+                }
+                switch (c)
+                {
+                    case '\\':
+                        i++;
+                        continue;
+                    case '<':
+                        nestc += 1;
+                        continue;
+                    case '>':
+                        nestc -= 1;
+                        continue;
+                }
+            }
         }
     }
 }
