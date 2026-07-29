@@ -1,0 +1,30 @@
+{
+	"id": "uql.scribe",
+	"name": "Scribe",
+	"version": "0.1.0",
+	"authors": "upquilled",
+	"description": "Unified persistent save data for YOUR MOD!",
+	"requirements": [ "uql.extra" ],
+	"requirements_names": [ "Extra Parameters" ],
+	"tags": [ "Tools" ],
+	"checksum_override_version": true,
+	"uql.extra": {
+		"exclude_steam": {
+			"globs": [
+				"source/**",
+				".git/**",
+				".gitattributes",
+				".gitignore",
+				"**/.DS_Store",
+				"README.md",
+				"**/Thumbs.db",
+				"**.tmp",
+				"bwu.json",
+				"plugins/**.pdb",
+				"thumbnail.svg",
+        		"**/.vs/**"
+			],
+			"dry_run": true
+		}
+	}
+}
