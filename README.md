@@ -82,4 +82,8 @@ Element
                  |--- NamedGroup : IRecordEntry (Label, Compound[])
 ```
 
-
+### Label(string val)
+### Record(IRecordEntry[] entries)
+### Group(Compound[] compounds)
+### NamedGroup(Label label, Compound[] compounds)
+### Wrapep(Label label, Compound[] compounds)
