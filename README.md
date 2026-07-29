@@ -63,7 +63,7 @@ The method `UQLTag.Wrapper? Registrar.RequestLoad(SlugcatStats.Name saveNum, str
 
 ## The UQLTag data format 
 
-The UQLTag format is the data format used to store saves in Scribe. The node types in UQLTag follow this tree:
+The UQLTag format is the data format used to store saves in Scribe. The node types in UQLTag follow this inheritance tree:
 
 ```
 Element
