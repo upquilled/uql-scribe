@@ -4,19 +4,18 @@ using System.Linq;
 
 namespace UQLScribe.Registries;
 
-public interface IReader
+public interface IRegistry
 {
     BepInEx.BaseUnityPlugin plugin {get; }
+    IEnumerable<UQLTag.Compound> Save();
     void Load(UQLTag.Wrapper? tag, RainWorldGame? game);
 }
-public interface IRegistry : IReader
-{
-    IEnumerable<UQLTag.Compound> Save();
-}
 
-public interface IObserver : IReader
+public interface IObserver
 {
+    BepInEx.BaseUnityPlugin plugin {get; }
     string GUID {get; }
+    void Load(UQLTag.Wrapper? tag, RainWorldGame game);
 }
 
 public static class Registrar
@@ -61,7 +60,6 @@ public static class Registrar
                 new UQLTag.Label(x.Value.plugin.Info.Metadata.GUID),
                 x.Value.Save())).Concat(unclaimedData);
     }
-
     public static UQLTag.Wrapper? RequestLoad(SlugcatStats.Name saveNum, string GUID)
     {
         if (!Hooks.RequestLoad(saveNum, out var saveData))
