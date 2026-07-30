@@ -1,30 +1,34 @@
 {
-	"id": "uql.scribe",
-	"name": "Scribe",
-	"version": "0.1.0",
-	"authors": "upquilled",
-	"description": "[h1]Scribe: Unified Persistent Save Data for YOUR MOD![/h1]<LINE>Scribe is a utility mod that provides a shared, extensible save system for Rain World mods.<LINE>Instead of every mod creating its own save format and handling storage separately, Scribe allows mods to register their own data, save it per-campaign, and access other mods' stored data in a consistent way.<LINE>[hr][/hr]<LINE>[h2]Features[/h2]<LINE>[list]<LINE>[*]Reliable persistent save data<LINE>[*]GUID-based registration to prevent data collisions<LINE>[*]Simple API for loading and saving data<LINE>[*]Support for observing and requesting other mods' save data<LINE>[*]Flexible structured data format<LINE>[*]Automatic serialization and parsing<LINE>[/list]<LINE>[hr][/hr]<LINE>[h2]For Mod Developers[/h2]<LINE>Scribe provides several ways for mods to interact with persistent data:<LINE>[b]IRegistry[/b]<LINE>Register your mod's own save data. Your data will be loaded when a campaign starts and saved when the game saves.<LINE>[b]IObserver[/b]<LINE>Observe another mod's saved data without owning it.<LINE>[b]RequestLoad()[/b]<LINE>Request another mod's save data when needed, such as from menus or other non-campaign contexts.<LINE>[hr][/hr]<LINE>[h2]UQLTag Data Format[/h2]<LINE>Scribe uses UQLTag, a compact tree-based data format designed for structured save data.<LINE>It supports:<LINE>[list]<LINE>[*]Labels<LINE>[*]Records<LINE>[*]Groups<LINE>[*]Named Groups<LINE>[*]Nested structures<LINE>[/list]<LINE><LINE>Scribe stores its data in the Rain World save string inside a dedicated data block:<LINE>[code]<LINE>[scribesaves:<uql.scribe:0><uql.terminus:J<JX<help:JX_FALL01:RM>>>]<LINE>[/code]<LINE>Each registered mod receives its own entry inside the block, identified by its GUID. Mods can store arbitrary structured data using the UQLTag format.<LINE>[hr][/hr]<LINE>[h2]Why Scribe?[/h2]<LINE>Persistent data should not require every mod to reinvent its own save system.<LINE>Scribe provides a shared foundation for mods to safely store information, keep data organized, and cooperate with other mods.<LINE>Made for Rain World mod developers.",
-	"requirements": [ "uql.extra" ],
-	"requirements_names": [ "Extra Parameters" ],
-	"tags": [ "Tools" ],
-	"checksum_override_version": true,
-	"uql.extra": {
-		"exclude_steam": {
-			"globs": [
-				"source/**",
-				".git/**",
-				".gitattributes",
-				".gitignore",
-				"**/.DS_Store",
-				"README.md",
-				"**/Thumbs.db",
-				"**.tmp",
-				"bwu.json",
-				"plugins/**.pdb",
-				"thumbnail.svg",
-        		"**/.vs/**"
-			],
-			"dry_run": true
-		}
-	}
+  "id": "uql.scribe",
+  "name": "Scribe",
+  "version": "1.0.0",
+  "authors": "upquilled",
+  "description": "[h1]Scribe: Unified Persistent Save Data for YOUR MOD![/h1]<LINE>Scribe is a utility mod that provides a shared, extensible save system for Rain World mods.<LINE>Instead of every mod creating its own save format and handling storage separately, Scribe allows mods to register their own data, save it per-campaign, and access other mods' stored data in a consistent way.<LINE>[hr][/hr]<LINE>[h2]Features[/h2]<LINE>[list]<LINE>[*]Reliable persistent save data<LINE>[*]GUID-based registration to prevent data collisions<LINE>[*]Simple API for loading and saving data<LINE>[*]Support for observing and requesting other mods' save data<LINE>[*]Flexible structured data format<LINE>[*]Automatic serialization and parsing<LINE>[/list]<LINE><LINE>[hr][/hr]<LINE>[h2]For Mod Developers[/h2]<LINE>Scribe provides several ways for mods to interact with persistent data:<LINE><LINE>[b]IRegistry[/b]<LINE>Register your mod's own save data. Your data will be loaded when a campaign starts and saved when the game saves.<LINE><LINE>[b]IObserver[/b]<LINE>Observe another mod's saved data without owning it.<LINE><LINE>[b]RequestLoad()[/b]<LINE>Request another mod's save data when needed, such as from menus or other non-campaign contexts.<LINE><LINE>[hr][/hr]<LINE>[h2]UQLTag Data Format[/h2]<LINE>Scribe uses UQLTag, a compact tree-based data format designed for structured save data.<LINE>It supports:<LINE>[list]<LINE>[*]Labels<LINE>[*]Records<LINE>[*]Groups<LINE>[*]Named Groups<LINE>[*]Nested structures<LINE>[/list]<LINE><LINE>Scribe stores its data in the Rain World save string inside a dedicated data block:<LINE>[code]<LINE>[scribesaves:<uql.scribe:0><uql.terminus:J<JX<help:JX_FALL01:RM>>>]<LINE>[/code]<LINE>Each registered mod receives its own entry inside the block, identified by its GUID. Mods can store arbitrary structured data using the UQLTag format.<LINE><LINE>[hr][/hr]<LINE>[h2]Why Scribe?[/h2]<LINE>Persistent data should not require every mod to reinvent its own save system.<LINE>Scribe provides a shared foundation for mods to safely store information, keep data organized, and cooperate with other mods.<LINE>Made for Rain World mod developers.",
+  "requirements": [
+    "uql.extra"
+  ],
+  "requirements_names": [
+    "Extra Parameters"
+  ],
+  "tags": [
+    "Tools",
+    "Dependency"
+  ],
+  "checksum_override_version": true,
+  "uql.extra": {
+    "exclude_steam": [
+        "source/**",
+        ".git/**",
+        ".gitattributes",
+        ".gitignore",
+        "**/.DS_Store",
+        "README.md",
+        "**/Thumbs.db",
+        "**.tmp",
+        "bwu.json",
+        "plugins/**.pdb",
+        "thumbnail.svg",
+        "**/.vs/**"
+      ]
+  }
 }
