@@ -34,23 +34,21 @@ public static class Hooks
     private static void RainWorldGame_ctor(On.RainWorldGame.orig_ctor orig, RainWorldGame self, ProcessManager manager)
     {
         orig(self, manager);
-        if (RequestLoadInGame(self, out var saveData))
-            Registries.Registrar.OnLoad(saveData, self);
+        if (RequestLoadInGame(self) is {} data)
+            Registries.Registrar.OnLoad(data, self);
     }
     
-    private static bool RequestLoadInGame(RainWorldGame game, out IEnumerable<UQLTag.Wrapper> saveData)
+    private static IEnumerable<UQLTag.Wrapper>? RequestLoadInGame(RainWorldGame game)
     {
-        saveData = null;
         if (!game.IsStorySession) 
         {
             UQLScribe.LWarn("Data load requested, but game is not in story session");
-            return false;
+            return null;
         }
-        return RequestLoad(game.StoryCharacter, out saveData);
+        return RequestLoad(game.StoryCharacter);
     }
-    internal static bool RequestLoad(SlugcatStats.Name saveNum, out IEnumerable<UQLTag.Wrapper> saveData)
+    internal static IEnumerable<UQLTag.Wrapper>? RequestLoad(SlugcatStats.Name saveNum)
     {
-        saveData = null;
         RainWorld rainWorld = UQLScribe.rainWorldInstance;
         
         FieldInfo expField = typeof(PlayerProgression).GetField("SAVE_FILE_EXP_DEFINITION", 
@@ -66,18 +64,16 @@ public static class Hooks
 
         string filename = UQLScribe.rainWorldInstance.options.GetSaveFileName_SavOrExp();
         string? rawSave = KittehParse.LoadFile(filename, filedef);
-        if (rawSave == null) return false;
+        if (rawSave == null) return null;
 
         string? foundSave = KittehParse.fetchScugFromRaw(rawSave, saveNum);
 
         if (foundSave == null)
         {
             UQLScribe.LWarn("Could not find save data for the current campaign");
-            saveData = Enumerable.Empty<UQLTag.Wrapper>();
-            return true;
+            return Enumerable.Empty<UQLTag.Wrapper>();
         }
         IEnumerable<UQLTag.Wrapper> parsedData = UQLTag.ParseFromSave(foundSave);
-        saveData = parsedData;
-        return true;
+        return parsedData;
     }
 }

@@ -62,7 +62,7 @@ public static class Registrar
     }
     public static UQLTag.Wrapper? RequestLoad(SlugcatStats.Name saveNum, string GUID)
     {
-        if (!Hooks.RequestLoad(saveNum, out var saveData))
+        if (Hooks.RequestLoad(saveNum) is not {} saveData)
             return null;
         UQLScribe.LInfo($"Loading requested save for GUID '{GUID}' and slugcat {saveNum}");
         return saveData.FirstOrDefault(x => x.label.val == GUID);

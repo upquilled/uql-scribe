@@ -2,9 +2,6 @@
 using System.Security;
 using BepInEx.Logging;
 using System;
-using UQLScribe.Registries;
-using System.Collections.Generic;
-
 [module: UnverifiableCode]
 
 namespace UQLScribe;
@@ -12,9 +9,9 @@ namespace UQLScribe;
 [BepInPlugin("uql.scribe", "Scribe", "0.1.0")]
 public partial class UQLScribe : BaseUnityPlugin
 {
-    internal static ManualLogSource LoggerInstance;
+    internal static ManualLogSource LoggerInstance = null!;
 
-    internal static PluginInfo info;
+    internal static PluginInfo info = null!;
 
     private bool _initialized;
 
@@ -23,10 +20,10 @@ public partial class UQLScribe : BaseUnityPlugin
         info = Info;
         LoggerInstance = Logger;
         On.RainWorld.OnModsInit += RainWorldOnModsInit;
-        LoggerInstance.LogInfo("UQLTAG! :3");
+        LoggerInstance.LogInfo("Initializing!");
     }
 
-    internal static RainWorld rainWorldInstance;
+    internal static RainWorld rainWorldInstance = null!;
     
     private void RainWorldOnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
     {
