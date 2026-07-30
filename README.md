@@ -30,12 +30,12 @@ public interface IRegistry
                                                          // typically at the start of a new cycle;
                                                          // RainWorldGame? game is only null if this gets called
                                                          // due to the IRegistry being registered late with
-                                                         // old data 
+                                                         // old save data present
 
     IEnumerable<UQLTag.Compound> Save(); // This gets executed when the game is saved,
                                          // usually at the end of a successful cycle.
                                          // The returned sequence of Compounds will
-                                         // be inserted into the saved Wrapper.
+                                         // be inserted into the saved Wrapper as your mod's data.
 }
 ```
 To register an `IRegistry`, run the method `Registrar.Register(myRegistry)` once your mod initializes.
@@ -67,23 +67,35 @@ The UQLTag format is the data format used to store saves in Scribe. The node typ
 
 ```
 Element
-   |
-   |--- Wrapper (Label, Compound[])
-   |
-   |--- Tag
-         |--- Label : IRecordEntry (string)
-         |
-         |--- Compound
-                 |
-                 |--- Record (IRecordEntry[])
-                 |
-                 |--- Group : IRecordEntry (Compound[])
-                 |
-                 |--- NamedGroup : IRecordEntry (Label, Compound[])
+   │
+   ├── Wrapper (Label, Compound[])
+   │
+   └── Tag
+        ├── Label : IRecordEntry (string)
+        │
+        └── Compound
+               │
+               ├── Record (IRecordEntry[])
+               │
+               ├── Group : IRecordEntry (Compound[])
+               │
+               └── NamedGroup : IRecordEntry (Label, Compound[])
 ```
 
 ### Label(string val)
-### Record(IRecordEntry[] entries)
-### Group(Compound[] compounds)
-### NamedGroup(Label label, Compound[] compounds)
-### Wrapep(Label label, Compound[] compounds)
+The Label is the sole leaf element type of a UQLTag tree, housing an arbitrary string. When serialized, it's displayed as the string literal with reserved characters (`<>:,\`) escaped. The string can contain any unicode symbols, including whitespace and newlines.
+### Record(IEnumerable<IRecordEntry> entries)
+A Record houses a collection of Labels, Groups and NamedGroups delimited by colons (`A:B:C`) when serialized. If a Record has only one entry, it must be a non-empty Label.
+### Group(IEnumerable<Compound> compounds)
+A Group houses a collection of Compounds - Records, Groups and NamedGroups. In serialization, the Group itself is delimited with angle brackets, and elements inside are delimited with commas if needed. 
+
+For a Group like `<<innergroup>coolName<innergroup>A:B:C,<innergroupagain>,:A>`:
+- There is no comma after the first Group and NamedGroup because `>` unambiguously closes it.
+- The Record has a comma after it to clarify the following is not a continuation of the last entry.
+- For the last Group, the comma between it and a Record with a leading empty Label serves to distinguish it from `<innergroupagain>:A`, which would be a single Record with the Group as its first entry.
+### NamedGroup(Label label, IEnumerable<Compound> compounds)
+A NamedGroup is a Group equipped with a Label. It's serialized exactly like a Group, except with the Label appended before the opening bracket. The Label of a NamedGroup cannot be empty.
+### Wrapper(Label label, IEnumerable<Compound> compounds)
+The Wrapper is the root element of a UQLTag tree, and hence the element which houses a mod's data. The Label of the Wrapper corresponds to the mod's GUID, and the Compounds inside correspond to the mod's save data. A Wrapper is serialized as `<label:compounds>`, where the Compounds inside are delimited the same way as in a Group.
+### static Wrapper Parse(string input)
+This is the user-facing method allowing you to parse a serialized wrapper back into a UQLTag tree.
