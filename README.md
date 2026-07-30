@@ -13,9 +13,9 @@ Steam Workshop Item: []()
 ## Registering your save data
 
 Inside the `UQLScribe` namespace, the module responsible for loading and saving persistent data is `UQLScribe.Registries`.
-The data tree format used for saves - UQLTag - is specified in the section below.
+The data tree format used for saves — UQLTag — is specified in the section below.
 
-There also several ways to access/store save data with this module:
+There are several ways to access/store save data with this module:
 
 ### 1. IRegistry
 
@@ -87,7 +87,7 @@ The Label is the sole leaf element type of a UQLTag tree, housing an arbitrary s
 ### Record(IEnumerable<IRecordEntry> entries)
 A Record houses a collection of Labels, Groups and NamedGroups delimited by colons (`A:B:C`) when serialized. If a Record has only one entry, it must be a non-empty Label.
 ### Group(IEnumerable<Compound> compounds)
-A Group houses a collection of Compounds - Records, Groups and NamedGroups. In serialization, the Group itself is delimited with angle brackets, and elements inside are delimited with commas if needed. 
+A Group houses a collection of Compounds — Records, Groups and NamedGroups. In serialization, the Group itself is delimited with angle brackets, and elements inside are delimited with commas if needed. 
 
 For a Group like `<<innergroup>coolName<innergroup>A:B:C,<innergroupagain>,:A>`:
 - There is no comma after the first Group and NamedGroup because `>` unambiguously closes it.
