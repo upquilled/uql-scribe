@@ -89,18 +89,24 @@ Element
 
 ### Label(string val)
 The Label is the sole leaf element type of a UQLTag tree, housing an arbitrary string. When serialized, it's displayed as the string literal with reserved characters (`<>:,\`) escaped. The string can contain any unicode symbols, including whitespace and newlines.
-### Record(IEnumerable<IRecordEntry> entries)
+### Record(IEnumerable\<IRecordEntry> entries)
 A Record houses a collection of Labels, Groups and NamedGroups delimited by colons (`A:B:C`) when serialized. If a Record has only one entry, it must be a non-empty Label.
-### Group(IEnumerable<Compound> compounds)
+### Group(IEnumerable\<Compound> compounds)
 A Group houses a collection of Compounds — Records, Groups and NamedGroups. In serialization, the Group itself is delimited with angle brackets, and elements inside are delimited with commas if needed. 
 
 For a Group like `<<innergroup>coolName<innergroup>A:B:C,<innergroupagain>,:A>`:
 - There is no comma after the first Group and NamedGroup because `>` unambiguously closes it.
 - The Record has a comma after it to clarify the following is not a continuation of the last entry.
 - For the last Group, the comma between it and a Record with a leading empty Label serves to distinguish it from `<innergroupagain>:A`, which would be a single Record with the Group as its first entry.
-### NamedGroup(Label label, IEnumerable<Compound> compounds)
+### NamedGroup(Label label, IEnumerable\<Compound> compounds)
 A NamedGroup is a Group equipped with a Label. It's serialized exactly like a Group, except with the Label appended before the opening bracket. The Label of a NamedGroup cannot be empty.
-### Wrapper(Label label, IEnumerable<Compound> compounds)
+### Wrapper(Label label, IEnumerable\<Compound> compounds)
 The Wrapper is the root element of a UQLTag tree, and hence the element which houses a mod's data. The Label of the Wrapper corresponds to the mod's GUID, and the Compounds inside correspond to the mod's save data. A Wrapper is serialized as `<label:compounds>`, where the Compounds inside are delimited the same way as in a Group.
 ### static Wrapper Parse(string input)
 This is the user-facing method allowing you to parse a serialized wrapper back into a UQLTag tree.
+### Implicit operators and alternative constructors
+The UQLTag system implements several implicit conversions and helper constructors to simplify tree assembly:
+- Strings provided to a Group/NamedGroup/Wrapper are automatically converted to single-Label Records
+- Providing exclusively strings to a Record automatically converts them to Labels
+- Records and Groups have a `params` constructor
+- Wrapper and NamedGroup constructors can omit `compounds` or have a single `Compound compound`

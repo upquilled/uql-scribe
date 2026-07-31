@@ -27,19 +27,15 @@ public static class Registrar
     private static List<Wrapper> unclaimedData = new();
 
     public static void Register(IObserver observer)
-    {
-        observers.Add(observer);
-    }
+        => observers.Add(observer);
 
     public static void Register(IRegistry registry)
     {
         string guid = registry.plugin.Info.Metadata.GUID;
         if (registries.ContainsKey(guid))
-        {
             throw new InvalidOperationException(
                 $"Multiple registries attempted to register GUID '{guid}'"
             );
-        }
 
         Wrapper? data = Pop(
             unclaimedData,
@@ -61,9 +57,7 @@ public static class Registrar
     }
 
     internal static IEnumerable<Wrapper> OnSave()
-    {
-        return RegistryData().Concat(unclaimedData);
-    }
+        => RegistryData().Concat(unclaimedData);
 
     private static IEnumerable<Wrapper> RegistryData()
     {
@@ -138,9 +132,7 @@ public static class Registrar
                 );
 
                 if (data is not null)
-                {
                     observedData.Add(observer.GUID, data);
-                }
             }
 
             UQLScribe.LInfo("Loading data to observer owned by "

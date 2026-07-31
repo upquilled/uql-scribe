@@ -13,7 +13,11 @@ public static class UQLTag
         public UQLTagSyntaxException(string message) : base(message) { }
     }
     public interface Element;
-    public interface Compound : Tag;
+    public abstract class Compound : Tag
+    {
+        public static implicit operator Compound(string s)
+            => new Record(s);
+    }
     public interface Tag : Element;
     public interface IRecordEntry : Tag;
 
@@ -34,10 +38,7 @@ public static class UQLTag
         }
     }
 
-    private static bool Escaped(char c)
-    {
-        return Functional(c) || c == '\\';
-    }
+    private static bool Escaped(char c) => Functional(c) || c == '\\';
 
     private static string serializeToGroup(IEnumerable<Compound> compounds)
     {
@@ -62,11 +63,11 @@ public static class UQLTag
     }
     public class Label : Tag, IRecordEntry
     {
-        public string val;
-        public Label(string s)
-        {
-            val = s;
-        }
+        public string val {get; init;}
+        public Label(string s) => val = s;
+
+        public static implicit operator Label(string s) => new Label(s);
+        
         public override string ToString()
         {
             StringBuilder sb = new();
@@ -86,11 +87,14 @@ public static class UQLTag
 
     public class Record : Compound
     {
-        public IRecordEntry[] entries;
+        public IRecordEntry[] entries {get; init;}
 
-        public Record(IEnumerable<IRecordEntry> entries)
+        public Record(params IRecordEntry[] entries)
         {
             this.entries = entries.ToArray();
+
+            if (this.entries.Length == 0)
+                throw new ArgumentException($"Record cannot be empty");
 
             if (this.entries.Length == 1)
             {
@@ -102,31 +106,34 @@ public static class UQLTag
             }
         }
 
-        public override string ToString()
-        {
-            return string.Join<IRecordEntry>(":", entries);
-        }
+        public Record(params Label[] labels)
+            : this((IEnumerable<IRecordEntry>) labels){}
+        
+        public Record(IEnumerable<IRecordEntry> entries)
+            : this([.. entries]){}
+
+        public static implicit operator Record(Label label)
+            => new Record([label]);
+        public override string ToString() => string.Join<IRecordEntry>(":", entries);
     }
 
     public class Group : Compound, IRecordEntry
     {
-        public Compound[] compounds;
+        public IReadOnlyList<Compound> compounds {get; init;}
 
+        public Group(params Compound[] compounds)
+            => this.compounds = compounds;
+        
         public Group(IEnumerable<Compound> compounds)
-        {
-            this.compounds = compounds.ToArray();
-        }
+            : this([.. compounds]){}
 
-        public override string ToString()
-        {
-            return $"<{serializeToGroup(compounds)}>";
-        }
+        public override string ToString() => $"<{serializeToGroup(compounds)}>";
     }
 
     public class NamedGroup : Compound, IRecordEntry
     {
-        public Label label;
-        public Compound[] compounds;
+        public Label label {get; init;}
+        public IReadOnlyList<Compound> compounds {get; init;}
 
         public NamedGroup(Label label, IEnumerable<Compound> compounds)
         {
@@ -135,41 +142,46 @@ public static class UQLTag
             this.compounds = compounds.ToArray();
         }
 
+        public NamedGroup(Label label, Compound compound)
+            : this(label, [compound]){}
+
+        public NamedGroup(Label label)
+            : this(label, []){}
+
         public override string ToString()
-        {
-            return $"{label}<{serializeToGroup(compounds)}>";
-        }
+            => $"{label}<{serializeToGroup(compounds)}>";
     }
 
     public class Wrapper : Element
     {
-        public Label label;
+        public Label label {get; init;}
 
-        public Compound[] compounds;
+        public IReadOnlyList<Compound> compounds {get; init;}
 
         public Wrapper(Label label, IEnumerable<Compound> compounds)
         {
             this.label = label;
             this.compounds = compounds.ToArray();
         }
+        
+        public Wrapper(Label label, Compound compound)
+            : this(label, [compound]){}
+
+        public Wrapper(Label label)
+            : this(label, []){}
 
         public override string ToString()
-        {
-            return $"<{label}:{serializeToGroup(compounds)}>";
-        }
+            => $"<{label}:{serializeToGroup(compounds)}>";
     }
 
     private static class ParsingErrors
     {
         public static void Syntax(int chari, string text)
-        {
-            throw new UQLTagSyntaxException($"Malformed UQLTag at char {chari}: {text}");
-        }
+            => throw new UQLTagSyntaxException($"Malformed UQLTag at char {chari}: {text}");
+
 
         public static void SuddenEnd(int chari)
-        {
-            Syntax(chari, "Unexpected end of data");
-        }
+            => Syntax(chari, "Unexpected end of data");
     }
 
     private static Group ParseGroup(string source, ref int i)
@@ -378,10 +390,7 @@ public static class UQLTag
                 UQLScribe.LError(e.Message);
             }
             if (save is not null) yield return save;
-            else
-            {
-                yield break;
-            }
+            else yield break;
         }
         if (i >= input.Length || input[i] != suffix)
             UQLScribe.LWarn("No termination suffix found! "

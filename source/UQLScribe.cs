@@ -6,7 +6,7 @@ using System;
 
 namespace UQLScribe;
 
-[BepInPlugin("uql.scribe", "Scribe", "1.1.0")]
+[BepInPlugin("uql.scribe", "Scribe", "1.2.0")]
 public partial class UQLScribe : BaseUnityPlugin
 {
     internal static ManualLogSource LoggerInstance = null!;
@@ -37,27 +37,17 @@ public partial class UQLScribe : BaseUnityPlugin
     }
 
     public static void LInfo(string message)
-    {
-        UnityEngine.Debug.Log($"[Info   :{info.Metadata.Name}] " + message);
-    }
+        => UnityEngine.Debug.Log($"[Info   :{info.Metadata.Name}] " + message);
 
     public static void LWarn(string message, Exception ex)
-    {
-        UnityEngine.Debug.LogWarning($"[Warning:{info.Metadata.Name}] {message}: {ex}");
-    }
+        => UnityEngine.Debug.LogWarning($"[Warning:{info.Metadata.Name}] {message}: {ex}");
 
     public static void LWarn(string message)
-    {
-        UnityEngine.Debug.LogWarning($"[Warning:{info.Metadata.Name}] {message}");
-    }
-
+        => UnityEngine.Debug.LogWarning($"[Warning:{info.Metadata.Name}] {message}");
+ 
     public static void LError(string message, Exception ex)
-    {
-        UnityEngine.Debug.LogError($"[Error  :{info.Metadata.Name}] {message}: {ex}");
-    }
+        => UnityEngine.Debug.LogError($"[Error  :{info.Metadata.Name}] {message}: {ex}");
 
     public static void LError(string message)
-    {
-        UnityEngine.Debug.LogError($"[Error  :{info.Metadata.Name}] {message}");
-    }
+        => UnityEngine.Debug.LogError($"[Error  :{info.Metadata.Name}] {message}");
 }

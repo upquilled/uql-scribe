@@ -31,9 +31,7 @@ public static class KittehParse
                 XmlNodeList valuesList = xmlDocument.SelectSingleNode("//Values").ChildNodes;
 
                 for (int i = 0; i < keysList.Count && i < valuesList.Count; i++)
-                {
                     extractedData[keysList[i].InnerText] = valuesList[i].InnerText;
-                }
             }
 
             else if (xmlDocument.SelectSingleNode("//KeyValueOfanyTypeanyType") is not null)
@@ -51,10 +49,7 @@ public static class KittehParse
                     }
                 }
             }
-            else
-            {
-                throw new InvalidDataException("Data was not a recognized serialized data format.");
-            }
+            else throw new InvalidDataException("Data was not a recognized serialized data format.");
         }
         catch (Exception ex)
         {
@@ -72,9 +67,7 @@ public static class KittehParse
             if (input[num] != 0)
             {
                 if (num == input.Length - 1)
-                {
                     return input;
-                }
 
                 byte[] array = new byte[num + 1];
                 Array.Copy(input, array, num + 1);
@@ -119,7 +112,6 @@ public static class KittehParse
 
         }
         catch (Exception ex)
-
         {
             UQLScribe.LoggerInstance.LogError($"KittehParse: Critical exception in LoadFile: {ex.Message}");
         }
@@ -142,10 +134,10 @@ public static class KittehParse
                 start = i;
                 i += prelude.Length;
                 StringBuilder nameSB = new();
+
                 for(;i < rawSave.Length && rawSave[i] != '<';i++)
-                {
                     nameSB.Append(rawSave[i]);
-                }
+                
                 if (nameSB.ToString() == name.ToString())
                 {
                     int j = 0;

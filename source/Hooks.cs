@@ -23,9 +23,7 @@ public static class Hooks
         var saves = FindAllSaves(save).ToList();
 
         foreach (var pair in saves.OrderByDescending(x => x.Start))
-        {
             save = save.Remove(pair.Start, pair.End - pair.Start);
-        }
 
         save += SerializeToSave(Registries.Registrar.OnSave());
         UQLScribe.LInfo("Saved state!");
