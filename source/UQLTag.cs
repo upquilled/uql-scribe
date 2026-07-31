@@ -256,13 +256,15 @@ public static class UQLTag
     }
     private static Wrapper ParseWrapper(string source, ref int i)
     {
+        if (i >= source.Length) ParsingErrors.SuddenEnd(i);
         if (source[i] != '<') ParsingErrors.Syntax(i, "Wrapper must start with \'<\'");
 
         i++;
 
         Label label = ParseLabel(source, ref i);
 
-        if (source[i] != ':') ParsingErrors.Syntax(i, "Non-colon character found delimiting Wrapper Label");
+        if (source[i] != ':') ParsingErrors.Syntax(i, "Non-colon character found "
+                                                    + "delimiting Wrapper Label");
 
         i++;
 
@@ -284,9 +286,75 @@ public static class UQLTag
         return ParseWrapper(input, ref i);
     }
 
+    private static bool WalkWrapperOrReturn(string input, ref int i, string targetGUID, out Wrapper? wrapper)
+    {
+        wrapper = null;
+
+        int j = i;
+
+        if (input[j] == ']') 
+            return false;
+        
+        if (input[j] != '<')
+        {
+                UQLScribe.LError("Expected to find '<' at start of save "
+                              + $"Wrapper, but found '{input[j]}'!");
+            return false;
+        }
+
+        j += 1;
+        
+        Label label = ParseLabel(input, ref j);
+
+        if (label.val == targetGUID)
+        {
+            wrapper = ParseWrapper(input, ref i);
+            return true;
+        }
+        
+        int depth = 1;
+
+        for (;;j++)
+        {
+            if (j >= input.Length)
+            {
+                UQLScribe.LError("Savestring ends on incomplete Wrapper!");
+                return false;
+            }
+            char c = input[j];
+            switch(c)
+            {
+                case '<':
+                    depth += 1;
+                    break;
+                case '>':
+                    depth -= 1;
+                    break;
+                case '\\':
+                    j++; // skip escaped char
+                    continue;
+            }
+            if (depth == 0)
+            {
+                i = j + 1;
+                return true;
+            }
+        }
+    }
+
+    internal static Wrapper? ParseSpecific(string input, string GUID)
+    {
+        int i = input.IndexOf(prefix);
+        i += prefix.Length;
+        while (WalkWrapperOrReturn(input, ref i, GUID, out var wrapper))
+            if (wrapper is not null)
+                return wrapper;
+        return null;
+    }
+
     internal static IEnumerable<Wrapper> ParseFromSave(string input)
     {
-        int i = input.LastIndexOf(prefix);
+        int i = input.IndexOf(prefix);
         if (i == -1)
         {
             UQLScribe.LWarn("No save data block found!");
@@ -309,14 +377,15 @@ public static class UQLTag
             {
                 UQLScribe.LError(e.Message);
             }
-            if (save != null) yield return save;
+            if (save is not null) yield return save;
             else
             {
                 yield break;
             }
         }
         if (i >= input.Length || input[i] != suffix)
-            UQLScribe.LWarn("No termination suffix found! Save data may be malformed");
+            UQLScribe.LWarn("No termination suffix found! "
+                          + "Save data may be malformed");
     }
 
     internal static string SerializeToSave(IEnumerable<Wrapper> input)
@@ -332,32 +401,34 @@ public static class UQLTag
     internal static IEnumerable<(int Start, int End)> FindAllSaves(string input)
     {
         int? start = null;
-        int? nestc = null;
+        int? depth = null;
 
         for (int i = 0; i + prefix.Length <= input.Length; i++)
         {
-            if (string.Compare(input, i, prefix, 0, prefix.Length, StringComparison.Ordinal) == 0)
+            if (string.Compare(input, i, prefix, 0, prefix.Length, 
+                StringComparison.Ordinal) == 0)
             {
                 start = i;
                 i += prefix.Length - 1;
-                nestc = 0;
+                depth = 0;
                 continue;
             }
-            if (nestc != null)
+            if (depth is not null)
             {
                 char c = input[i];
-                if (nestc == 0)
+                if (depth == 0)
                 {
                     if (c == ']')
                     {
                         yield return ((int)start!, i + 1);
-                        nestc = start = null;
+                        depth = start = null;
                         continue;
                     }
                     else if (c != '<')
                     {
-                        UQLScribe.LInfo("Block appears to be malformed. Continuing to next...");
-                        nestc = start = null;
+                        UQLScribe.LInfo("Block appears to be malformed. "
+                                      + "Continuing to next...");
+                        depth = start = null;
                         i--;
                         continue;
                     }
@@ -365,13 +436,13 @@ public static class UQLTag
                 switch (c)
                 {
                     case '\\':
-                        i++;
+                        i++; // skip escaped char
                         continue;
                     case '<':
-                        nestc += 1;
+                        depth += 1;
                         continue;
                     case '>':
-                        nestc -= 1;
+                        depth -= 1;
                         continue;
                 }
             }

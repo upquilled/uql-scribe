@@ -3,19 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace UQLScribe.Registries;
+using static UQLTag;
 
 public interface IRegistry
 {
     BepInEx.BaseUnityPlugin plugin {get; }
-    IEnumerable<UQLTag.Compound> Save();
-    void Load(UQLTag.Wrapper? tag, RainWorldGame? game);
+    IEnumerable<Compound>? Save();
+    void Load(Wrapper? tag, RainWorldGame? game);
 }
 
 public interface IObserver
 {
     BepInEx.BaseUnityPlugin plugin {get; }
     string GUID {get; }
-    void Load(UQLTag.Wrapper? tag, RainWorldGame game);
+    void Load(Wrapper? tag, RainWorldGame game);
 }
 
 public static class Registrar
@@ -23,7 +24,7 @@ public static class Registrar
     private static readonly Dictionary<string, IRegistry> registries = new();
     private static readonly HashSet<IObserver> observers = new();
 
-    private static List<UQLTag.Wrapper> unclaimedData = new();
+    private static List<Wrapper> unclaimedData = new();
 
     public static void Register(IObserver observer)
     {
@@ -40,37 +41,55 @@ public static class Registrar
             );
         }
 
-        UQLTag.Wrapper? data = Pop(
+        Wrapper? data = Pop(
             unclaimedData,
             x => x.label.val == guid
         );
 
-        if (data != null) {
+        if (data is not null) {
             UQLScribe.LInfo($"Loading unclaimed data to registry for GUID '{guid}'");
-            registry.Load(data, null);
+            var game = UQLScribe.rainWorldInstance
+                       .processManager.currentMainLoop as RainWorldGame;
+            
+            if (game is null)
+                UQLScribe.LWarn("Failed to capture game instance "
+                              + "while loading unclaimed data!");
+            registry.Load(data, game);
         }
         
         registries.Add(guid, registry);
     }
 
-    internal static IEnumerable<UQLTag.Wrapper> OnSave()
+    internal static IEnumerable<Wrapper> OnSave()
     {
-        return registries
-        .Select(x => new UQLTag.Wrapper(
-                new UQLTag.Label(x.Value.plugin.Info.Metadata.GUID),
-                x.Value.Save())).Concat(unclaimedData);
+        return RegistryData().Concat(unclaimedData);
     }
-    public static UQLTag.Wrapper? RequestLoad(SlugcatStats.Name saveNum, string GUID)
+
+    private static IEnumerable<Wrapper> RegistryData()
     {
-        if (Hooks.RequestLoad(saveNum) is not {} saveData)
-            return null;
-        UQLScribe.LInfo($"Loading requested save for GUID '{GUID}' and slugcat {saveNum}");
-        return saveData.FirstOrDefault(x => x.label.val == GUID);
+        foreach (var reg in registries.Values)
+        {
+            string GUID = reg.plugin.Info.Metadata.GUID;
+            UQLScribe.LInfo($"Saving entry for '{GUID}'");
+            var result = reg.Save();
+            if (result is null) continue;
+            yield return new Wrapper(new Label(GUID),result);
+        }
     }
-    internal static void OnLoad(IEnumerable<UQLTag.Wrapper> saveData, RainWorldGame game)
+    public static Wrapper? RequestLoad(SlugcatStats.Name saveNum, string GUID, out bool saveExists)
     {
-        List<UQLTag.Wrapper> remainingData = saveData.ToList();
-        Dictionary<string, UQLTag.Wrapper> observedData = new();
+        Wrapper? wrapper = Hooks.RequestLoadSpecific(saveNum, GUID, out saveExists);
+        if (!saveExists) return null;
+
+        UQLScribe.LInfo($"Loading requested save for GUID '{GUID}' "
+                      + $"and slugcat {saveNum}");
+        
+        return wrapper;
+    }
+    internal static void OnLoad(IEnumerable<Wrapper> saveData, RainWorldGame game)
+    {
+        List<Wrapper> remainingData = saveData.ToList();
+        Dictionary<string, Wrapper> observedData = new();
 
         UQLScribe.LInfo("OnLoading!");
 
@@ -79,12 +98,12 @@ public static class Registrar
             IRegistry registry = registryPair.Value;
             string GUID = registryPair.Key;
 
-            UQLTag.Wrapper? data = Pop(
+            Wrapper? data = Pop(
                 remainingData,
                 x => x.label.val == GUID
                 );
 
-            if (data != null)
+            if (data is not null)
             {
                 if (observedData.ContainsKey(GUID))
                     throw new InvalidOperationException(
@@ -97,10 +116,11 @@ public static class Registrar
             registry.Load(data, game);
         }
 
-        foreach (UQLTag.Wrapper wrapper in remainingData)
+        foreach (Wrapper wrapper in remainingData)
         {
             UQLScribe.LWarn(
-                $"Save data under GUID '{wrapper.label.val}' was claimed by no registry"
+                $"Save data under GUID '{wrapper.label.val}' was "
+                +"claimed by no registry"
             );
         }
 
@@ -108,7 +128,7 @@ public static class Registrar
 
         foreach (IObserver observer in observers)
         {
-            UQLTag.Wrapper? data;
+            Wrapper? data;
 
             if (!observedData.TryGetValue(observer.GUID, out data))
             {
@@ -117,13 +137,16 @@ public static class Registrar
                     x => x.label.val == observer.GUID
                 );
 
-                if (data != null)
+                if (data is not null)
                 {
                     observedData.Add(observer.GUID, data);
                 }
             }
 
-            UQLScribe.LInfo($"Loading data to observer owned by '{observer.plugin.Info.Metadata.GUID}' for GUID '{observer.GUID}'");
+            UQLScribe.LInfo("Loading data to observer owned by "
+                         + $"'{observer.plugin.Info.Metadata.GUID}' for "
+                         + $"GUID '{observer.GUID}'");
+
             observer.Load(data, game);
         }
     }

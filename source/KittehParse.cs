@@ -25,7 +25,7 @@ public static class KittehParse
                 xmlDocument.Load(xmlTextReader);
             }
 
-            if (xmlDocument.SelectSingleNode("//Keys") != null)
+            if (xmlDocument.SelectSingleNode("//Keys") is not null)
             {
                 XmlNodeList keysList = xmlDocument.SelectSingleNode("//Keys").ChildNodes;
                 XmlNodeList valuesList = xmlDocument.SelectSingleNode("//Values").ChildNodes;
@@ -36,7 +36,7 @@ public static class KittehParse
                 }
             }
 
-            else if (xmlDocument.SelectSingleNode("//KeyValueOfanyTypeanyType") != null)
+            else if (xmlDocument.SelectSingleNode("//KeyValueOfanyTypeanyType") is not null)
             {
                 XmlNodeList pairNodes = xmlDocument.SelectNodes("//KeyValueOfanyTypeanyType");
 
@@ -45,7 +45,7 @@ public static class KittehParse
                     XmlNode keyNode = pairNodes[j].SelectSingleNode("Key");
                     XmlNode valueNode = pairNodes[j].SelectSingleNode("Value");
 
-                    if (keyNode != null && valueNode != null)
+                    if (keyNode is not null && valueNode is not null)
                     {
                         extractedData[keyNode.InnerText] = valueNode.InnerText;
                     }
@@ -102,7 +102,7 @@ public static class KittehParse
             byte[] bytes = TruncateNullBytes(File.ReadAllBytes(absolutePath));
 
             Dictionary<string, string>? parsedMap = Deserialize(bytes);
-            if (parsedMap == null || parsedMap.Count == 0)
+            if (parsedMap is null || parsedMap.Count == 0)
             {
                 UQLScribe.LoggerInstance.LogError($"KittehParse: Failed to deserialize or extract keys from {exactName}");
                 return null;
@@ -127,7 +127,7 @@ public static class KittehParse
         return null;
     }
 
-    public static string? fetchScugFromRaw(string rawSave, SlugcatStats.Name name)
+    public static string? FetchScugFromRaw(string rawSave, SlugcatStats.Name name)
     {
         string prefix = "<progDivA>SAVE STATE";
         string endfix = "<progDivA>";
@@ -135,7 +135,8 @@ public static class KittehParse
         int start;
         for(int i = 0; i + prefix.Length <= rawSave.Length; i++)
         {
-            if (rawSave.Substring(i,prefix.Length) == prefix)
+            if (string.Compare(rawSave, i, prefix, 0, prefix.Length, 
+                StringComparison.Ordinal) == 0)
             {
                 i += prefix.Length;
                 start = i;
@@ -149,7 +150,8 @@ public static class KittehParse
                 {
                     int j = 0;
                     for(; i + j + endfix.Length <= rawSave.Length; j++) {
-                        if (rawSave.Substring(i+j,endfix.Length) == endfix)
+                        if (string.Compare(rawSave, i + j, endfix, 0, 
+                            endfix.Length, StringComparison.Ordinal) == 0)
                             break;
                     }
                     return rawSave.Substring(start,i+j-start);

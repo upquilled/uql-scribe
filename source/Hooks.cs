@@ -4,6 +4,7 @@ using System.Reflection;
 using Kittehface.Framework20;
 
 namespace UQLScribe;
+using static UQLTag;
 
 public static class Hooks
 {
@@ -19,14 +20,14 @@ public static class Hooks
     {
         string save = orig(self);
 
-        var saves = UQLTag.FindAllSaves(save).ToList();
+        var saves = FindAllSaves(save).ToList();
 
         foreach (var pair in saves.OrderByDescending(x => x.Start))
         {
             save = save.Remove(pair.Start, pair.End - pair.Start);
         }
 
-        save += UQLTag.SerializeToSave(Registries.Registrar.OnSave());
+        save += SerializeToSave(Registries.Registrar.OnSave());
         UQLScribe.LInfo("Saved state!");
         return save;
     }
@@ -38,7 +39,7 @@ public static class Hooks
             Registries.Registrar.OnLoad(data, self);
     }
     
-    private static IEnumerable<UQLTag.Wrapper>? RequestLoadInGame(RainWorldGame game)
+    private static IEnumerable<Wrapper>? RequestLoadInGame(RainWorldGame game)
     {
         if (!game.IsStorySession) 
         {
@@ -47,7 +48,8 @@ public static class Hooks
         }
         return RequestLoad(game.StoryCharacter);
     }
-    internal static IEnumerable<UQLTag.Wrapper>? RequestLoad(SlugcatStats.Name saveNum)
+
+    private static string? GetSaveString(SlugcatStats.Name saveNum)
     {
         RainWorld rainWorld = UQLScribe.rainWorldInstance;
         
@@ -64,16 +66,36 @@ public static class Hooks
 
         string filename = UQLScribe.rainWorldInstance.options.GetSaveFileName_SavOrExp();
         string? rawSave = KittehParse.LoadFile(filename, filedef);
-        if (rawSave == null) return null;
+        if (rawSave is null) return null;
 
-        string? foundSave = KittehParse.fetchScugFromRaw(rawSave, saveNum);
+        string? foundSave = KittehParse.FetchScugFromRaw(rawSave, saveNum);
 
-        if (foundSave == null)
-        {
+        if (foundSave is null)
             UQLScribe.LWarn("Could not find save data for the current campaign");
-            return Enumerable.Empty<UQLTag.Wrapper>();
-        }
-        IEnumerable<UQLTag.Wrapper> parsedData = UQLTag.ParseFromSave(foundSave);
+        
+        return foundSave;
+    }
+    internal static IEnumerable<Wrapper>? RequestLoad(SlugcatStats.Name saveNum)
+    {
+        string? foundSave = GetSaveString(saveNum);
+
+        if (foundSave is null)
+            return [];
+
+        IEnumerable<Wrapper> parsedData = ParseFromSave(foundSave);
         return parsedData;
+    }
+
+    internal static Wrapper? RequestLoadSpecific(SlugcatStats.Name saveNum, string GUID, out bool success)
+    {
+        success = false;
+        
+        string? foundSave = GetSaveString(saveNum);
+
+        if (foundSave is null) 
+            return null;
+        
+        success = true;
+        return ParseSpecific(foundSave, GUID);
     }
 }

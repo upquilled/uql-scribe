@@ -28,14 +28,19 @@ public interface IRegistry
 
     void Load(UQLTag.Wrapper? tag, RainWorldGame? game); // This gets executed when a RainWorldGame is created,
                                                          // typically at the start of a new cycle;
+                                                         
                                                          // RainWorldGame? game is only null if this gets called
                                                          // due to the IRegistry being registered late with
-                                                         // old save data present
+                                                         // old save data present and Scribe can't find a 
+                                                         // RainWorldGame instance
 
-    IEnumerable<UQLTag.Compound> Save(); // This gets executed when the game is saved,
-                                         // usually at the end of a successful cycle.
-                                         // The returned sequence of Compounds will
-                                         // be inserted into the saved Wrapper as your mod's data.
+    IEnumerable<UQLTag.Compound>? Save(); // This gets executed when the game is saved,
+                                          // usually at the end of a successful cycle.
+                                          
+                                          // The returned sequence of Compounds will
+                                          // be inserted into the saved Wrapper as your mod's data.
+                                          
+                                          // If this is left null, no Wrapper will be saved.
 }
 ```
 To register an `IRegistry`, run the method `Registrar.Register(myRegistry)` once your mod initializes.
@@ -59,7 +64,7 @@ To register an `IObserver`, run the method `Registrar.Register(myObserver)` once
 
 ### 3. RequestLoad()
 
-The method `UQLTag.Wrapper? Registrar.RequestLoad(SlugcatStats.Name saveNum, string GUID)` returns the save data of the mod of the specified GUID if it's present. This would usually be used if you want to load campaign data outside of the campaign itself (e.g. in the menu)
+The method `UQLTag.Wrapper? Registrar.RequestLoad(SlugcatStats.Name saveNum, string GUID, out bool saveExists)` returns the save data of the mod of the specified GUID if it's present. This would usually be used if you want to load campaign data outside of the campaign itself (e.g. in the menu). `saveExists` lets you know whether the `Wrapper?` is null just because the save data wasn't present or if the save for the campaign itself wasn't found (in that case it's false).
 
 ## The UQLTag data format 
 
