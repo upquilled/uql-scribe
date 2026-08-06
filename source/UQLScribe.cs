@@ -6,7 +6,7 @@ using System;
 
 namespace UQLScribe;
 
-[BepInPlugin("uql.scribe", "Scribe", "1.2.1")]
+[BepInPlugin("uql.scribe", "Scribe", "1.2.2")]
 public partial class UQLScribe : BaseUnityPlugin
 {
     internal static ManualLogSource LoggerInstance = null!;
