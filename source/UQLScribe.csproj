@@ -89,8 +89,13 @@
       <HintPath>../../../../Managed/com.rlabrecque.steamworks.net.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <!--<Reference Include="RainMeadow">
+      <HintPath>../../../../../../../workshop/content/312520/3388224007/plugins/Rain Meadow.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    planning support maybe? idk how tho
+    -->
   </ItemGroup>
-
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>

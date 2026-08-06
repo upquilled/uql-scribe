@@ -92,10 +92,7 @@ public static class Registrar
             IRegistry registry = registryPair.Value;
             string GUID = registryPair.Key;
 
-            Wrapper? data = Pop(
-                remainingData,
-                x => x.label.val == GUID
-                );
+            Wrapper? data = remainingData.Pop(x => x.label.val == GUID);
 
             if (data is not null)
             {
@@ -126,10 +123,7 @@ public static class Registrar
 
             if (!observedData.TryGetValue(observer.GUID, out data))
             {
-                data = Pop(
-                    remainingData,
-                    x => x.label.val == observer.GUID
-                );
+                data = remainingData.Pop(x => x.label.val == observer.GUID);
 
                 if (data is not null)
                     observedData.Add(observer.GUID, data);

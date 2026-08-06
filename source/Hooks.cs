@@ -47,20 +47,23 @@ public static class Hooks
         return RequestLoad(game.StoryCharacter);
     }
 
+    private static readonly UserData.FileDefinition expDefinition =
+        (UserData.FileDefinition)typeof(PlayerProgression)
+        .GetField("SAVE_FILE_EXP_DEFINITION", BindingFlags.NonPublic | BindingFlags.Static)
+        .GetValue(null);
+    
+    private static readonly UserData.FileDefinition savDefinition =
+        (UserData.FileDefinition)typeof(PlayerProgression)
+        .GetField("SAVE_FILE_DEFINITION", BindingFlags.NonPublic | BindingFlags.Static)
+        .GetValue(null);
+
     private static string? GetSaveString(SlugcatStats.Name saveNum)
     {
         RainWorld rainWorld = UQLScribe.rainWorldInstance;
         
-        FieldInfo expField = typeof(PlayerProgression).GetField("SAVE_FILE_EXP_DEFINITION", 
-            BindingFlags.NonPublic | BindingFlags.Static);
-        var exp = (UserData.FileDefinition)expField.GetValue(null);
-
-        FieldInfo normField = typeof(PlayerProgression).GetField("SAVE_FILE_DEFINITION", 
-            BindingFlags.NonPublic | BindingFlags.Static);
-        var norm = (UserData.FileDefinition)normField.GetValue(null);
-
         var filedef = new UserData.FileDefinition(
-            (ModManager.Expedition && rainWorld.options.saveSlot < 0) ? exp : norm);
+            (ModManager.Expedition && rainWorld.options.saveSlot < 0) 
+            ? expDefinition : savDefinition);
 
         string filename = UQLScribe.rainWorldInstance.options.GetSaveFileName_SavOrExp();
         string? rawSave = KittehParse.LoadFile(filename, filedef);
